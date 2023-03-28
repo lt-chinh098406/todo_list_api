@@ -1,17 +1,11 @@
-import mongoose, { ConnectOptions } from 'mongoose'
+import mongoose from 'mongoose'
 import logger from '@/utils/logger'
 
 const connectDatabase = async () => {
-  const mongoDbUrl: string = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster0.gfb59qx.mongodb.net/?retryWrites=true&w=majority`
+  const mongoDbUrl: string = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@todo-list-collection.vxeaiuj.mongodb.net/?retryWrites=true&w=majority`
 
-  logger.info(`Connecting to ${mongoDbUrl}`)
   try {
-    await mongoose.connect(mongoDbUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-      useFindAndModify: false,
-    } as ConnectOptions)
+    await mongoose.connect(mongoDbUrl)
 
     logger.info('Successfully connected to the database')
   } catch (err) {
