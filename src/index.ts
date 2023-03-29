@@ -1,40 +1,34 @@
 import express from 'express'
 import morgan from 'morgan'
 import helmet from 'helmet'
-import dotenv from 'dotenv'
-import bodyParser from 'body-parser'
+import * as dotenv from 'dotenv'
+import ApiServer from './ApiServer'
 import { Request, Response } from 'express'
+//------------------------------------------------------------------
 dotenv.config()
 
-import logger from '@/utils/logger'
-import connectDatabase from '@/configs/db.config'
+//------------------------------------------------------------------
+/**
+ * App Variables
+ */
+if (!process.env.PORT) {
+  process.exit(1)
+}
+const PORT: number = parseInt(process.env.PORT as string, 10)
 
-const port = process.env.PORT || 3001
+//------------------------------------------------------------------
 const app = express()
 
+//------------------------------------------------------------------
+/**
+ *  App Configuration
+ */
 app.use(helmet())
 app.use(morgan('tiny'))
 
-// parse application/json
-app.use(bodyParser.json())
-
-app.use('/api', require('./routes').default)
-
-app.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'Todo List API by ChinhLT',
-  })
-})
-
-app.get('*', (req: Request, res: Response) => {
-  res.json({
-    message: 'Todo List API by ChinhLT',
-  })
-})
-
-// db
-connectDatabase()
-
-app.listen(port, () => {
-  logger.info(`App available at http://localhost:${port}`)
-})
+//------------------------------------------------------------------
+/**
+ * Server Activation
+ */
+const apiServer: ApiServer = new ApiServer()
+apiServer.start(PORT)
