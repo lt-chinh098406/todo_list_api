@@ -5,7 +5,7 @@ export interface ITodo extends Document {
   description: string
   statusId: number
   properties: string[]
-  creator: string
+  creator: any
 }
 
 const TodoScheme: Schema = new Schema({

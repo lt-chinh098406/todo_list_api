@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { Controller, Get, Put, Post } from '@overnightjs/core'
+import { Controller, Get, Patch, Post, Delete } from '@overnightjs/core'
 import { Service } from 'typedi'
 import { ITodo } from '@/models/Todo'
 
@@ -28,6 +28,27 @@ export class TodoController {
     }
   }
 
+  @Get('/:id/detail')
+  private async getDetailTodo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const todoId = req.params.id
+
+      const result: ITodo = await this.todoService
+        .getDetailTodo(todoId)
+        .catch((e) => {
+          throw e
+        })
+
+      res.status(200).json({ data: mongooseToObject(result) })
+    } catch (e) {
+      next(e)
+    }
+  }
+
   @Post('create')
   private async addTodo(
     req: Request,
@@ -40,6 +61,47 @@ export class TodoController {
       const result: ITodo = await this.todoService.addTodo(body).catch((e) => {
         throw e
       })
+      res.status(200).json({ data: mongooseToObject(result) })
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  @Patch('/:id/update')
+  private async updateTodo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const body = req.body
+      const todoId = req.params.id
+
+      const result: ITodo = await this.todoService
+        .updateTodo(body, todoId)
+        .catch((e) => {
+          throw e
+        })
+      res.status(200).json({ data: mongooseToObject(result) })
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  @Delete(':id/delete')
+  private async deleteTodo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const todoId = req.params.id
+
+      const result: ITodo = await this.todoService
+        .deleteTodo(todoId)
+        .catch((e) => {
+          throw e
+        })
       res.status(200).json({ data: mongooseToObject(result) })
     } catch (e) {
       next(e)

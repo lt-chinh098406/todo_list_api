@@ -14,6 +14,10 @@ export class TodoService {
     return this.repository.listTodo()
   }
 
+  getDetailTodo(todoId: string): Promise<ITodo> {
+    return this.repository.getDetailTodo(todoId)
+  }
+
   addTodo(body: ITodo): Promise<ITodo> {
     const { title, description, statusId, properties, creator } = body
 
@@ -26,6 +30,14 @@ export class TodoService {
     })
 
     return this.repository.addTodo(newTodo, creator)
+  }
+
+  updateTodo(body: ITodo, todoId: string): Promise<ITodo> {
+    return this.repository.updateTodo(body, todoId)
+  }
+
+  deleteTodo(todoId: string): Promise<ITodo> {
+    return this.repository.deleteTodo(todoId)
   }
 }
 

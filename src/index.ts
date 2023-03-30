@@ -3,7 +3,6 @@ import morgan from 'morgan'
 import helmet from 'helmet'
 import * as dotenv from 'dotenv'
 import ApiServer from './ApiServer'
-import { Request, Response } from 'express'
 //------------------------------------------------------------------
 dotenv.config()
 
@@ -24,7 +23,7 @@ const app = express()
  *  App Configuration
  */
 app.use(helmet())
-app.use(morgan('tiny'))
+app.use(morgan('combined'))
 
 //------------------------------------------------------------------
 /**
