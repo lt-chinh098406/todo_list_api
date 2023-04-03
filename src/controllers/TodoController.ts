@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { Controller, Get, Patch, Post, Delete } from '@overnightjs/core'
+import { Controller, Get, Post, Delete, Put } from '@overnightjs/core'
 import { Service } from 'typedi'
 import { ITodo } from '@/models/Todo'
 
@@ -18,9 +18,11 @@ export class TodoController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const result: ITodo[] = await this.todoService.listTodo().catch((e) => {
-        throw e
-      })
+      const result: ITodo[] | void = await this.todoService
+        .listTodo()
+        .catch((e) => {
+          res.status(404).json({ message: e })
+        })
 
       res.status(200).json({ data: multipleMongooseToObject(result) })
     } catch (e) {
@@ -28,7 +30,7 @@ export class TodoController {
     }
   }
 
-  @Get('/:id/detail')
+  @Get(':id/detail')
   private async getDetailTodo(
     req: Request,
     res: Response,
@@ -37,10 +39,10 @@ export class TodoController {
     try {
       const todoId = req.params.id
 
-      const result: ITodo = await this.todoService
+      const result: ITodo | void = await this.todoService
         .getDetailTodo(todoId)
         .catch((e) => {
-          throw e
+          res.status(404).json({ message: e })
         })
 
       res.status(200).json({ data: mongooseToObject(result) })
@@ -58,16 +60,18 @@ export class TodoController {
     try {
       const body = req.body
 
-      const result: ITodo = await this.todoService.addTodo(body).catch((e) => {
-        throw e
-      })
-      res.status(200).json({ data: mongooseToObject(result) })
+      const result: string | void = await this.todoService
+        .addTodo(body)
+        .catch((e) => {
+          res.status(404).json({ message: e })
+        })
+      res.status(200).json({ message: result })
     } catch (e) {
-      next(e)
+      res.status(500).json({ message: e })
     }
   }
 
-  @Patch('/:id/update')
+  @Put(':id/update')
   private async updateTodo(
     req: Request,
     res: Response,
@@ -77,14 +81,14 @@ export class TodoController {
       const body = req.body
       const todoId = req.params.id
 
-      const result: ITodo = await this.todoService
+      const result: string | void = await this.todoService
         .updateTodo(body, todoId)
         .catch((e) => {
-          throw e
+          res.status(404).json({ message: e })
         })
-      res.status(200).json({ data: mongooseToObject(result) })
+      res.status(200).json({ message: result })
     } catch (e) {
-      next(e)
+      res.status(500).json({ message: e })
     }
   }
 
@@ -97,12 +101,13 @@ export class TodoController {
     try {
       const todoId = req.params.id
 
-      const result: ITodo = await this.todoService
+      const result: string | void = await this.todoService
         .deleteTodo(todoId)
         .catch((e) => {
-          throw e
+          res.status(404).json({ message: e })
         })
-      res.status(200).json({ data: mongooseToObject(result) })
+
+      res.status(200).json({ message: result })
     } catch (e) {
       next(e)
     }

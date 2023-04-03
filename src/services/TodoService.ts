@@ -18,25 +18,16 @@ export class TodoService {
     return this.repository.getDetailTodo(todoId)
   }
 
-  addTodo(body: ITodo): Promise<ITodo> {
-    const { title, description, statusId, properties, creator } = body
-
-    const newTodo = new TodoModel({
-      title,
-      description,
-      statusId,
-      properties,
-      creator,
-    })
-
-    return this.repository.addTodo(newTodo, creator)
+  addTodo(body: ITodo): Promise<string> {
+    const newTodo = new TodoModel(body)
+    return this.repository.addTodo(newTodo, body.creator)
   }
 
-  updateTodo(body: ITodo, todoId: string): Promise<ITodo> {
+  updateTodo(body: ITodo, todoId: string): Promise<string> {
     return this.repository.updateTodo(body, todoId)
   }
 
-  deleteTodo(todoId: string): Promise<ITodo> {
+  deleteTodo(todoId: string): Promise<string> {
     return this.repository.deleteTodo(todoId)
   }
 }

@@ -1,13 +1,16 @@
 import { NextFunction, Request, Response } from 'express'
-import { Controller, Get, Put, Post } from '@overnightjs/core'
+import { Controller, Get, Post, Middleware } from '@overnightjs/core'
 import { Service } from 'typedi'
 import { IUser } from '@/models/User'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import { checkJwt } from '@/middleware/checkJwt.middleware'
 
 import UserService from '@/services/UserService'
-import { multipleMongooseToObject, mongooseToObject } from '@/utils/mongoose'
+import { mongooseToObject } from '@/utils/mongoose'
 
 @Service()
-@Controller('api/user')
+@Controller('api/auth')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -18,26 +21,44 @@ export class UserController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const user: IUser = await this.userService.login()
-      res.status(200).json({ data: user })
+      const result: {} = await this.userService.login(req.body)
+      res.status(200).json({ data: result })
     } catch (error) {
       res.status(400)
     }
   }
 
-  @Post('register')
-  private async register(
+  @Post('token/refresh')
+  private async refreshToken(
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
-      const body = req.body
+      const refreshToken = req.body.token
+      if (!refreshToken) res.status(401)
 
-      await this.userService.register(body)
-      res.status(200).json({ message: 'Create success new User' })
+      const result: {} = await this.userService.refreshToken(refreshToken)
+      res.status(200).json({ data: result })
     } catch (error) {
-      res.status(400).json({ message: 'Create failure new User' })
+      res.status(400)
+    }
+  }
+
+  @Get('/me')
+  @Middleware(checkJwt)
+  private async me(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = req.params.id
+
+      const result: IUser = await this.userService.me(userId)
+      res.status(200).json({ data: mongooseToObject(result) })
+    } catch (error) {
+      res.status(500).json({ message: error })
     }
   }
 }

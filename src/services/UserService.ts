@@ -1,6 +1,7 @@
 import UserModel, { IUser } from '@/models/User'
 import { UserRepository } from '@/repositories/UserRepository'
 import { Service } from 'typedi'
+import jwt from 'jsonwebtoken'
 
 @Service()
 export class UserService {
@@ -10,21 +11,36 @@ export class UserService {
     this.repository = repository
   }
 
-  async login(): Promise<IUser> {
-    return this.repository.login()
+  login(body: IUser): {} {
+    const accessToken = jwt.sign(body, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: '1800s',
+    })
+    const refreshToken = jwt.sign(body, process.env.JWT_REFRESH_SECRET)
+
+    return { accessToken, refreshToken }
   }
 
-  async register(body: IUser): Promise<IUser> {
-    const { name, email, password, image } = body
+  refreshToken(refreshToken: string): {} {
+    let accessToken
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      (err, data: any) => {
+        const accessToken = jwt.sign(
+          { username: data.username },
+          process.env.JWT_REFRESH_SECRET,
+          {
+            expiresIn: '1800s',
+          }
+        )
+      }
+    )
 
-    const newUser = new UserModel({
-      name,
-      email,
-      password,
-      image,
-    })
+    return { accessToken, refreshToken }
+  }
 
-    return this.repository.register(newUser)
+  async me(userId: string): Promise<IUser> {
+    return this.repository.me(userId)
   }
 }
 

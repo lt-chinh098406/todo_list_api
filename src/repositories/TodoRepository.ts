@@ -1,31 +1,28 @@
 import { Service } from 'typedi'
 import TodoModel, { ITodo } from '@/models/Todo'
-import UserModel, { IUser } from '@/models/User'
-import mongoose from 'mongoose'
+import User, { IUser } from '@/models/User'
 
 @Service()
 export class TodoRepository {
-  async addTodo(newTodo: ITodo, creator: string): Promise<ITodo> {
-    const user: IUser = await UserModel.findById(creator)
-
-    if (!user) {
-      console.log('error')
-    }
-    const session = await mongoose.startSession()
+  async listTodo(): Promise<ITodo[]> {
     try {
-      session.startTransaction()
-
-      await newTodo.save({ session })
-      user.todos.push(newTodo)
-      await user.save({ session })
-
-      await session.commitTransaction()
-      return newTodo
+      return await TodoModel.find()
     } catch (error) {
-      await session.abortTransaction()
       throw error
-    } finally {
-      session.endSession()
+    }
+  }
+
+  async addTodo(newTodo: ITodo, creator: string): Promise<string> {
+    try {
+      const saveTodo: ITodo = await newTodo.save()
+
+      if (creator) {
+        const user: IUser = await User.findById(creator)
+        await user.updateOne({ $push: { todos: saveTodo._id } })
+      }
+      return 'Create Successfully!'
+    } catch (error) {
+      throw error
     }
   }
 
@@ -37,56 +34,26 @@ export class TodoRepository {
     }
   }
 
-  async updateTodo(body: ITodo, todoId: string): Promise<ITodo> {
-    const { title, description, statusId, properties } = body
-    let todo = await TodoModel.findById(todoId)
-
-    console.log(body)
-
-    if (!todo) {
-      console.log('error')
-    }
-
+  async updateTodo(body: ITodo, todoId: string): Promise<string> {
     try {
-      todo.title = title
-      todo.description = description
-      todo.statusId = statusId
-      todo.properties = properties
-      return await todo.save()
+      const todo: ITodo = await TodoModel.findById(todoId)
+
+      await todo.updateOne({ $set: body })
+
+      return 'Update Successfully!'
     } catch (error) {
       throw error
     }
   }
 
-  async listTodo(): Promise<ITodo[]> {
+  async deleteTodo(todoId: string): Promise<string> {
     try {
-      return await TodoModel.find()
+      await User.updateMany({ todos: todoId }, { $pull: { todos: todoId } })
+      await TodoModel.findByIdAndDelete(todoId)
+
+      return 'Delete Successfully!'
     } catch (error) {
       throw error
-    }
-  }
-
-  async deleteTodo(todoId: string): Promise<ITodo> {
-    const todo = await TodoModel.findById(todoId).populate('creator')
-
-    if (!todo) {
-      console.log('error')
-    }
-
-    const session = await mongoose.startSession()
-    try {
-      session.startTransaction()
-
-      await todo.deleteOne({ session })
-      todo.creator.todos.pull(todo)
-      await todo.creator.save({ session })
-
-      return todo
-    } catch (error) {
-      await session.abortTransaction()
-      throw error
-    } finally {
-      session.endSession()
     }
   }
 }

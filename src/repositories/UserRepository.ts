@@ -1,13 +1,10 @@
 import { Service } from 'typedi'
-import UserModel, { IUser } from '@/models/User'
+import User, { IUser } from '@/models/User'
+import bcrypt from 'bcrypt'
 
 @Service()
 export class UserRepository {
-  async register(newTodo: IUser): Promise<IUser> {
-    return await newTodo.save()
-  }
-
-  async login(): Promise<IUser> {
-    return await UserModel.findOne()
+  async me(userId: string): Promise<IUser> {
+    return await User.findById(userId)
   }
 }

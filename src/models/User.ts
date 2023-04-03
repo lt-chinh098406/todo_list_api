@@ -1,23 +1,28 @@
 import mongoose, { model, Schema, Model, Document } from 'mongoose'
-
+import bcrypt from 'bcrypt'
 import { ITodo } from '@/models/Todo'
 
 export interface IUser extends Document {
-  name: string
+  username: string
   email: string
-  password: number
+  hash_password: number
+  comparePassword(password: string): boolean
   image: string[]
   todos: ITodo[]
 }
 
 const UserSchema: Schema = new Schema({
-  name: { type: String, required: true },
+  username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true, minlength: 6 },
+  hash_password: { type: String, required: true, minlength: 6 },
   image: { type: String, required: true },
   todos: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Todos' }],
 })
 
-const UserModel: Model<IUser> = model<IUser>('User', UserSchema)
+UserSchema.methods.comparePassword = function (password: string): boolean {
+  return bcrypt.compareSync(password, this.hash_password)
+}
 
-export default UserModel
+const User: Model<IUser> = model<IUser>('User', UserSchema)
+
+export default User
